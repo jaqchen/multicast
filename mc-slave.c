@@ -1,5 +1,5 @@
 /*
- * Copyright (©) 2022 Ye Holmes <yeholmes@outlook.com>
+ * Copyright (©) 2022, 2026 yejq <yejq.jiaqiang@gmail.com>
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -30,7 +30,7 @@ int main(int argc, char *argv[])
 
 	netdev = (argc > 1) ? argv[1] : "enp8s0";
 	ftm = ftmsock_create(FTMC_TEST_ADDR, netdev,
-		FTMC_TEST_WPORT, FTMC_TEST_RPORT, 0);
+		FTMC_TEST_WPORT, FTMC_TEST_RPORT);
 	if (ftm == NULL)
 		return 1;
 

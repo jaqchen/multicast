@@ -103,7 +103,7 @@ int ftmsock_reopen(struct ftmsock * ftms,
 		return -1;
 	}
 
-	sockfd = socket(ftms->ms_ipv6 ? AF_INET6 : AF_INET,
+	sockfd = socket(AF_INET,
 		SOCK_DGRAM | SOCK_NONBLOCK | SOCK_CLOEXEC, 0);
 	if (sockfd == -1) {
 		errn = errno;
@@ -113,12 +113,7 @@ int ftmsock_reopen(struct ftmsock * ftms,
 		goto err0;
 	}
 
-	if (ftms->ms_ipv6) {
-		// TODO: struct sockaddr_in6 v6addr;
-		fputs("Error, multicast over IPv6 is not yet supported!\n", stderr);
-		fflush(stderr);
-		goto err0;
-	} else {
+	do {
 		int optval;
 		struct ip_mreqn mreq;
 		struct sockaddr_in v4addr;
@@ -184,7 +179,7 @@ int ftmsock_reopen(struct ftmsock * ftms,
 		addrp->sin_family = AF_INET;
 		addrp->sin_addr.s_addr = mreq.imr_multiaddr.s_addr;
 		addrp->sin_port = htons(ftms->ms_wport);
-	}
+	} while (0);
 
 	ftmsock_loop_ttl(sockfd, 0, 5, 1);
 	ftms->ms_ifidx = if_idx;
@@ -199,7 +194,7 @@ err0:
 
 struct ftmsock * ftmsock_create(const char * mcaddr,
     const char * mcnetdev, unsigned short rport,
-    unsigned short wport, int mc_ipv6)
+    unsigned short wport)
 {
 	int ret;
 	size_t fsize;
@@ -213,7 +208,7 @@ struct ftmsock * ftmsock_create(const char * mcaddr,
 	}
 
 	fsize = sizeof(*fsock);
-	fsize += mc_ipv6 ? sizeof(struct sockaddr_in6) : sizeof(struct sockaddr_in);
+	fsize += sizeof(struct sockaddr_in);
 	fsock = (struct ftmsock *) calloc(0x1, fsize);
 	if (fsock == NULL) {
 		fputs("Error, System out of memory!\n", stderr);
@@ -227,7 +222,6 @@ struct ftmsock * ftmsock_create(const char * mcaddr,
 	fsock->ms_sockfd = -1;
 	fsock->ms_rport = rport;
 	fsock->ms_wport = wport;
-	fsock->ms_ipv6 = (mc_ipv6 != 0) ? -1 : 0;
 	fsock->ms_ifidx = 0;
 	fsock->ms_send_addr = (void *) (((unsigned char *) fsock) + sizeof(*fsock));
 
@@ -260,8 +254,7 @@ int ftmsock_send(struct ftmsock * ftms,
 		return -2;
 	}
 
-	slt = ftms->ms_ipv6 ? sizeof(struct sockaddr_in6) :
-		sizeof(struct sockaddr_in);
+	slt = sizeof(struct sockaddr_in);
 	rl1 = sendto(sockfd, mptr, (size_t) length, 0,
 		(const struct sockaddr *) ftms->ms_send_addr, slt);
 	if (rl1 != (ssize_t) length) {
@@ -283,7 +276,6 @@ int ftmsock_recv(struct ftmsock * ftms,
 	int sockfd, errn;
 	struct sockaddr * vaddrp;
 	struct sockaddr_in v4addr;
-	struct sockaddr_in6 v6addr;
 
 	sockfd = ftmsock_check(ftms, 1);
 	if (sockfd < 0)
@@ -318,9 +310,8 @@ int ftmsock_recv(struct ftmsock * ftms,
 		}
 	}
 
-	slt = ftms->ms_ipv6 ? sizeof(v6addr) : sizeof(v4addr);
-	vaddrp = ftms->ms_ipv6 ? ((struct sockaddr *) &v6addr) :
-		((struct sockaddr *) &v4addr);
+	slt = sizeof(v4addr);
+	vaddrp = (struct sockaddr *) &v4addr;
 	rl1 = recvfrom(sockfd, mptr, length, 0, vaddrp, &slt);
 	if (rl1 == -1) {
 		errn = errno;

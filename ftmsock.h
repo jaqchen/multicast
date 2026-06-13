@@ -31,14 +31,13 @@ struct ftmsock {
 	int                  ms_sockfd;
     unsigned short       ms_rport;
     unsigned short       ms_wport;
-	int                  ms_ipv6;
 	unsigned int         ms_ifidx;
 	void *               ms_send_addr;
 };
 
 struct ftmsock * ftmsock_create(const char * mcaddr,
     const char * mcnetdev, unsigned short rport,
-    unsigned short wport, int mc_ipv6);
+    unsigned short wport);
 
 int ftmsock_reopen(struct ftmsock * ftms,
 	const char * new_netdev);
