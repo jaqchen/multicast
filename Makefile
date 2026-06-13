@@ -16,7 +16,7 @@
 
 MAKEFLAGS += -r -R
 CC         = gcc
-CFLAGS     = -Wall -fPIC -O2 -D_GNU_SOURCE -I../include
+CFLAGS     = -Wall -fPIC -O2 -D_GNU_SOURCE -I.
 
 TARGETS    = ftmsock.o mc-master.o mc-slave.o mc-master mc-slave
 
