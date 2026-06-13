@@ -1,2 +1,6 @@
+*.a
+*.o
+*.so*
+.*.swp
 /mc-master
 /mc-slave
